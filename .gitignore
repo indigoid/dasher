@@ -17,3 +17,6 @@
 *.out
 *.app
 lcdsim
+
+# OSX debug crap
+*.dSYM
