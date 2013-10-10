@@ -1,4 +1,4 @@
 dasher
 ======
 
-Motorcycle-mounted datalogger project
+Motorcycle-mounted datalogger project. Very disorganised right now.
