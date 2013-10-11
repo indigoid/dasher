@@ -1,6 +1,6 @@
 PROG=lcdsim
 SOURCES=lcdsim.c handlers.c menudefs.c
-CFLAGS=-Wall -std=c99 -g 
+CFLAGS=-Wall -std=c99
 LDFLAGS=-lncurses
 
 $(PROG): $(SOURCES)
