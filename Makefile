@@ -1,7 +1,7 @@
 PROG=lcdsim
 SOURCES=lcdsim.c handlers.c menudefs.c
 TESTS=geofence
-CFLAGS=-Wall -std=c99
+CFLAGS=-Wall -std=c99 -Iinclude
 LDFLAGS=-lncurses
 
 $(PROG): $(SOURCES)
