@@ -17,6 +17,7 @@
 *.out
 *.app
 lcdsim
+geofence
 
 # OSX debug crap
 *.dSYM

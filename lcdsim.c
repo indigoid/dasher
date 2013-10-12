@@ -29,7 +29,7 @@ void render_heading(struct fragment* frag) {
 struct fragment fragments[] = {
 	FRAGMENT_TEXT(0,0,"Dasher Prototype v1"),
 	FRAGMENT(1,13,random_uint,render_speed),
-	FRAGMENT(1,5,random_uint,render_speed),
+	FRAGMENT(1,5,random_uint,render_heading),
 	FRAGMENTLAST()
 };
 
@@ -76,7 +76,7 @@ void display_menu(struct context* c, struct menu* m, WINDOW* win) {
 	wrefresh(win);
 }
 
-WINDOW* setup_terminal(struct context* ctx) {
+WINDOW* setup_terminal(void) {
 	WINDOW* lcd;
 	initscr();
 	raw();
@@ -90,7 +90,7 @@ WINDOW* setup_terminal(struct context* ctx) {
 	return lcd;
 }
 
-void shutdown_terminal(struct context* ctx) {
+void shutdown_terminal(void) {
 	endwin();
 }
 
@@ -130,7 +130,7 @@ void menu_move(struct context* ctx, struct menu* m, int8_t delta, WINDOW* win) {
 int main(int argc, char** argv) {
 	struct context ctx = { .tracking = 0, .menupos = 0 };
 	int ch;
-	WINDOW* lcd = setup_terminal(&ctx);
+	WINDOW* lcd = setup_terminal();
 	display_menu(&ctx, &m_track, lcd);
 	refresh();
 	while ((ch = getch()) != 'q') {
@@ -161,6 +161,6 @@ int main(int argc, char** argv) {
 		}
 	}
 done:
-	shutdown_terminal(&ctx);
+	shutdown_terminal();
 	return 0;
 }
