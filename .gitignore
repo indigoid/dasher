@@ -20,3 +20,6 @@ lcdsim
 
 # OSX debug crap
 *.dSYM
+
+# Vim swap files
+.*.swp

@@ -7,20 +7,9 @@
 
 #include "menus.h"
 #include "menudefs.h"
+#include "fragment.h"
 
 #define lcd_write(w,y,x,fmt, ...) mvwprintw(w,y+1,x+1,fmt, __VA_ARGS__)
-
-struct fragment {
-	char 			text[LCD_COLS+1];
-	uint8_t 		x,y;
-	union {
-		unsigned int	uint;
-		signed int	sint;
-		void*		ptr;
-	} input;
-	void (*update)(struct fragment* frag);
-	void (*render)(struct fragment* frag);
-};
 
 void random_uint(struct fragment* frag) {
 	assert(frag != NULL);
@@ -35,32 +24,6 @@ void render_speed(struct fragment* frag) {
 void render_heading(struct fragment* frag) {
 	assert(frag != NULL);
 	snprintf(frag->text, LCD_COLS, "dir:%3d", frag->input.uint);
-}
-
-#define FRAGMENT(_y,_x,_ucb,_rcb) {	\
-	.y = _y,			\
-	.x = _x,			\
-	.update = _ucb,			\
-	.render = _rcb,			\
-	.input = { .ptr = NULL }	\
-}
-
-#define FRAGMENT_TEXT(_y, _x, _text) {	\
-	.y = _y,			\
-	.x = _x,			\
-	.text = _text,			\
-	.render = NULL,			\
-	.update = NULL,			\
-	.input = { .ptr = NULL }	\
-}
-
-#define FRAGMENTLAST() {		\
-	.x = 0,				\
-	.y = 0,				\
-	.text = "",			\
-	.render = NULL,			\
-	.update = NULL,			\
-	.input = { .ptr = NULL }	\
 }
 
 struct fragment fragments[] = {
@@ -86,9 +49,7 @@ void lcdwrite_all_fragments(struct context* c, WINDOW* win, struct fragment* fra
 	assert(win != NULL);
 	assert(frags != NULL);
 	struct fragment* frag = fragments;
-	while (1) {
-		if (frag->render == NULL && frag->input.ptr == NULL && frag->text[0] == '\0')
-			return;
+	while (!ISFRAGMENTLAST(frag)) {
 		lcdwrite_fragment(c,win,frag);
 		frag++;
 	}
