@@ -2,11 +2,11 @@
 #define IG_GEOFENCE_H__
 
 struct geo {
-	double			latitude;
-	double			longitude;
+	float			latitude;
+	float			longitude;
 	
 };
 
-double distance_in_metres(const struct geo* from, const struct geo* to);
+float distance_in_metres(const struct geo* from, const struct geo* to);
 
 #endif /* IG_GEOFENCE_H__ */

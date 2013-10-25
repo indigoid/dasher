@@ -15,21 +15,21 @@
 /* earth's quadtratic mean radius for wgs-84 */
 #define EARTH_RADIUS_IN_METRES 6372797.560856
 
-static double arc_in_radians(const struct geo* from, const struct geo* to) {
+static float arc_in_radians(const struct geo* from, const struct geo* to) {
 	assert(from != NULL);
 	assert(to != NULL);
-	double latitudearc  = (from->latitude - to->latitude) * DEG_TO_RAD;
-	double longitudearc = (from->longitude - to->longitude) * DEG_TO_RAD;
-	double latitudeh = sin(latitudearc * 0.5);
+	float latitudearc  = (from->latitude - to->latitude) * DEG_TO_RAD;
+	float longitudearc = (from->longitude - to->longitude) * DEG_TO_RAD;
+	float latitudeh = sin(latitudearc * 0.5);
 	latitudeh *= latitudeh;
-	double longtitudeh = sin(longitudearc * 0.5);
+	float longtitudeh = sin(longitudearc * 0.5);
 	longtitudeh *= longtitudeh;
-	double tmp = cos(from->latitude*DEG_TO_RAD) * cos(to->latitude*DEG_TO_RAD);
+	float tmp = cos(from->latitude*DEG_TO_RAD) * cos(to->latitude*DEG_TO_RAD);
 	return 2.0 * asin(sqrt(latitudeh + tmp*longtitudeh));
 }
 
 /* computes the distance, in meters, between two wgs-84 positions. */
-double distance_in_metres(const struct geo* from, const struct geo* to) {
+float distance_in_metres(const struct geo* from, const struct geo* to) {
     return EARTH_RADIUS_IN_METRES*arc_in_radians(from, to);
 }
 
@@ -44,7 +44,7 @@ double distance_in_metres(const struct geo* from, const struct geo* to) {
 int main(int argc, char** argv) {
 	struct geo p = { .latitude = 0.0, .longitude = 0.0 };
 	struct geo q = p;
-	double dist;
+	float dist;
 	srand(time(NULL));
 	while ((dist = distance_in_metres(&p, &q)) < 1000.0) {
 		if (rand() % 10 > 5)

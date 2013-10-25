@@ -4,12 +4,17 @@
 #include <string.h>
 #include <stdint.h>
 #include <ncurses.h>
+#include <math.h>
 
 #include "menus.h"
 #include "menudefs.h"
 #include "fragment.h"
+#include "geofence.h"
+#include "fdirection.h"
 
 #define lcd_write(w,y,x,fmt, ...) mvwprintw(w,y+1,x+1,fmt, __VA_ARGS__)
+
+void wclearbox(WINDOW* win);
 
 void random_uint(struct fragment* frag) {
 	assert(frag != NULL);
@@ -53,6 +58,31 @@ void lcdwrite_all_fragments(struct context* c, WINDOW* win, struct fragment* fra
 		lcdwrite_fragment(c,win,frag);
 		frag++;
 	}
+}
+
+void lcdwrite_director(WINDOW* win, struct geo* ref, struct geo* pos) {
+	assert(win != NULL);
+	assert(ref != NULL);
+	assert(pos != NULL);
+	char director[3][3] = {
+		{ '.', '.', '.' },
+		{ '.', '*', '.' },
+		{ '.', '.', '.' }
+	};
+	int dlat = fdirection(ref->latitude,pos->latitude) + 1;
+	int dlong = fdirection(ref->longitude,pos->longitude) + 1;
+	director[dlat][dlong] = 'X';
+	wclearbox(win);
+	lcd_write(win,0,0,"%c%c%c lat :%.6f%c",
+		director[0][0], director[0][1], director[0][2],
+		fabs(pos->latitude), pos->latitude > 0 ? 'N' : 'S');
+	lcd_write(win,1,0,"%c%c%c long:%.6f%c",
+		director[1][0], director[1][1], director[1][2],
+		fabs(pos->longitude), pos->longitude > 0 ? 'E' : 'W');
+	lcd_write(win,2,0,"%c%c%c dist:%.2fm",
+		director[2][0], director[2][1], director[2][2],
+		distance_in_metres(ref, pos));
+	wrefresh(win);
 }
 
 void display_menu(struct context* c, struct menu* m, WINDOW* win) {
@@ -126,6 +156,7 @@ void menu_move(struct context* ctx, struct menu* m, int8_t delta, WINDOW* win) {
 }
 
 #define RULER "01234567890123456789"
+#define MOVEINCR 0.0005
 
 int main(int argc, char** argv) {
 	struct context ctx = { .tracking = 0, .menupos = 0 };
@@ -133,31 +164,56 @@ int main(int argc, char** argv) {
 	WINDOW* lcd = setup_terminal();
 	display_menu(&ctx, &m_track, lcd);
 	refresh();
+	struct geo ref = { .latitude = 0.0, .longitude = 0.0 };
+	struct geo pos = ref;
 	while ((ch = getch()) != 'q') {
 		switch(ch) {
+			/* menu navigation keys */
 			case KEY_UP:
 				menu_move(&ctx,&m_track,-1,lcd);
 				break;
 			case KEY_DOWN:
 				menu_move(&ctx,&m_track,+1,lcd);
 				break;
-			case 'r': /* display ruler */
-				wclearbox(lcd);
-				lcd_write(lcd,0,0,"%s",RULER);
-				wrefresh(lcd);
-				break;
-			case 'f': /* display fragments */
-				wclearbox(lcd);
-				lcdwrite_all_fragments(&ctx,lcd,fragments);
-				wrefresh(lcd);
-				break;
+			/* select a menu item */
 			case ' ':
 				werase(stdscr);
 				mvwprintw(stdscr,1,1,"Selected item: %s",m_track.menuitems[ctx.menupos].text);
 				display_menu(&ctx,&m_track,lcd);
 				break;
+			/* display a ruler */
+			case 'r': 
+				wclearbox(lcd);
+				lcd_write(lcd,0,0,"%s",RULER);
+				wrefresh(lcd);
+				break;
+			/* test fragment display */
+			case 'f':
+				wclearbox(lcd);
+				lcdwrite_all_fragments(&ctx,lcd,fragments);
+				wrefresh(lcd);
+				break;
+			/* test compass director */
+			case 'h': /* go WEST */
+				pos.longitude -= MOVEINCR;
+				lcdwrite_director(lcd,&ref,&pos);
+				break;
+			case 'j': /* go SOUTH */
+				pos.latitude -= MOVEINCR;
+				lcdwrite_director(lcd,&ref,&pos);
+				break;
+			case 'k': /* go NORTH */
+				pos.latitude += MOVEINCR;
+				lcdwrite_director(lcd,&ref,&pos);
+				break;
+			case 'l': /* go EAST */
+				pos.longitude += MOVEINCR;
+				lcdwrite_director(lcd,&ref,&pos);
+				break;
+			/* quit */
 			case 'q':
 				goto done;
+				break;
 		}
 	}
 done:
